@@ -1,38 +1,58 @@
 const express = require("express");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
 const cors = require("cors");
-const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+const http = require("http");
+const { Server } = require("socket.io");
 
-const connectDB = require("../config/db");
+const orderRoutes = require("./routes/orderRoutes");
+const reservationRoutes = require("./routes/reservationRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
+
+dotenv.config();
 
 const app = express();
-
-// middleware
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-// connect DB + start server
-const PORT = process.env.PORT || 5000;
+// create server HTTP
+const server = http.createServer(app);
 
-const startServer = async () => {
-  try {
-    await connectDB();
 
-    // routes
-    app.use("/api/auth", require("./routes/auth.routes"));
-    app.use("/api/orders", require("./routes/order.routes"));
 
-    // test route
-    app.get("/", (req, res) => {
-      res.send("API is running...");
-    });
-
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error("Failed to connect DB", error);
+// create socket server
+const io = new Server(server, {
+  cors: {
+    origin: "*"
   }
-};
+});
 
-startServer();
+// allow using io in different files
+app.set("io", io);
+
+// 👉 connect socket
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+  });
+});
+
+// DB
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.log(err));
+
+// routes
+app.use("/orders", orderRoutes);
+app.use("/tables", require("./routes/tableRoutes"));
+app.use("/menu", require("./routes/menuRoutes"));
+app.use("/reservations", reservationRoutes);
+app.use("/dashboard", dashboardRoutes);
+
+
+// chạy server
+server.listen(process.env.PORT, () => {
+  console.log("Server running...");
+});
