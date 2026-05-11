@@ -1,0 +1,127 @@
+[
+  {
+    "name": "Pepsi",
+    "price": 18000,
+    "category": "Drink"
+  },
+  {
+    "name": "Coca Cola",
+    "price": 20000,
+    "category": "Drink"
+  },
+  {
+    "name": "Sprite",
+    "price": 18000,
+    "category": "Drink"
+  },
+  {
+    "name": "Fanta",
+    "price": 18000,
+    "category": "Drink"
+  },
+  {
+    "name": "Mineral Water",
+    "price": 10000,
+    "category": "Drink"
+  },
+  {
+    "name": "Lemon Tea",
+    "price": 25000,
+    "category": "Drink"
+  },
+  {
+    "name": "Milk Tea",
+    "price": 35000,
+    "category": "Drink"
+  },
+  {
+    "name": "Orange Juice",
+    "price": 30000,
+    "category": "Drink"
+  },
+  {
+    "name": "Iced Coffee",
+    "price": 28000,
+    "category": "Drink"
+  },
+  {
+    "name": "Chicken Burger",
+    "price": 75000,
+    "category": "Food"
+  },
+  {
+    "name": "Beef Burger",
+    "price": 85000,
+    "category": "Food"
+  },
+  {
+    "name": "Cheese Burger",
+    "price": 90000,
+    "category": "Food"
+  },
+  {
+    "name": "French Fries",
+    "price": 45000,
+    "category": "Food"
+  },
+  {
+    "name": "Fried Chicken",
+    "price": 120000,
+    "category": "Food"
+  },
+  {
+    "name": "Chicken Wings",
+    "price": 95000,
+    "category": "Food"
+  },
+  {
+    "name": "Hot Dog",
+    "price": 50000,
+    "category": "Food"
+  },
+  {
+    "name": "Pizza Margherita",
+    "price": 140000,
+    "category": "Food"
+  },
+  {
+    "name": "Seafood Pizza",
+    "price": 180000,
+    "category": "Food"
+  },
+  {
+    "name": "Spaghetti Bolognese",
+    "price": 95000,
+    "category": "Food"
+  },
+  {
+    "name": "Chicken Nugget",
+    "price": 60000,
+    "category": "Food"
+  },
+  {
+    "name": "Fish Burger",
+    "price": 80000,
+    "category": "Food"
+  },
+  {
+    "name": "BBQ Chicken Pizza",
+    "price": 190000,
+    "category": "Food"
+  },
+  {
+    "name": "Combo Burger + Coke",
+    "price": 99000,
+    "category": "Combo"
+  },
+  {
+    "name": "Combo Chicken + Fries",
+    "price": 149000,
+    "category": "Combo"
+  },
+  {
+    "name": "Family Combo",
+    "price": 299000,
+    "category": "Combo"
+  }
+]

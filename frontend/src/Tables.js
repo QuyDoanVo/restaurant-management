@@ -26,7 +26,7 @@ function Tables() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>🪑 Tables</h2>
+      <h2>Tables</h2>
 
       <div
         style={{

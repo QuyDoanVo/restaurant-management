@@ -77,7 +77,7 @@ function ReservationList() {
             
             {/* ✅ CONFIRMED */}
             <div>
-                <h2>✅ Confirmed</h2>
+                <h2>Reservation List</h2>
                 <div style={{ background: "white", padding: 12, borderRadius: 12 }}>
                     {list
                         .filter(r => r.status === "confirmed")
@@ -87,8 +87,7 @@ function ReservationList() {
 
             {/* ⏳ WAITING */}
             <div>
-                <h2>⏳ Waiting List</h2>
-                <div style={{ background: "#fff7ed", padding: 12, borderRadius: 12 }}>
+                <div >
                     {list
                         .filter(r => r.status === "waiting")
                         .map(renderItem)}
