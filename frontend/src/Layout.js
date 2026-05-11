@@ -19,7 +19,7 @@ function Layout({ children }) {
           <p><Link to="/kitchen" style={{ color: "white" }}>🍳 Kitchen</Link></p>
           <p><Link to="/tables" style={{ color: "white" }}>🪑 Tables</Link></p>
           <p><Link to="/reservation" style={{ color: "white" }}>📅 Reservation</Link></p>
-          <p><Link to="/reservation-list" style={{ color: "white" }}>📖 Reservations</Link></p>
+          <p><Link to="/reservation-list" style={{ color: "white" }}>📖 Reservation Lists</Link></p>
           <p>
             <Link
               to="/dashboard"

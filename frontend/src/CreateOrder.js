@@ -6,6 +6,7 @@ function CreateOrder() {
   const [menu, setMenu] = useState([]);
   const [selectedTable, setSelectedTable] = useState("");
   const [items, setItems] = useState([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetchTables();
@@ -64,23 +65,48 @@ function CreateOrder() {
 
   // create order
   const createOrder = async () => {
+
+    // chưa chọn bàn
+    if (!selectedTable) {
+
+      setError("Please select a table");
+
+      return;
+    }
+
+    // chưa có món
+    if (items.length === 0) {
+
+      setError("Please add at least 1 item");
+
+      return;
+    }
+
     try {
-      if (!selectedTable || items.length === 0) {
-        alert("Please select table and items");
-        return;
-      }
 
-      await axios.post("http://localhost:5000/orders", {
-        tableId: selectedTable,
-        items
-      });
+      setError("");
 
-      alert("Order created successfully!");
+      const res = await axios.post(
+        "http://localhost:5000/orders",
+        {
+          tableId: selectedTable,
+          items
+        }
+      );
+
+      console.log(
+        "Created order:",
+        res.data
+      );
+
+      alert("Order created!");
 
       setItems([]);
-      setSelectedTable("");
+
     } catch (err) {
+
       console.error(err);
+
       alert("Error creating order");
     }
   };
@@ -187,9 +213,21 @@ function CreateOrder() {
           </h2>
 
           {/* BUTTON */}
+          {error && (
+
+            <p style={{
+              color: "red",
+              marginTop: 10,
+              marginBottom: 10,
+              fontWeight: "bold"
+            }}>
+              {error}
+            </p>
+
+          )}
+
           <button
             onClick={createOrder}
-            disabled={!selectedTable || items.length === 0}
             style={{
               width: "100%",
               marginTop: 10,
@@ -204,6 +242,7 @@ function CreateOrder() {
           >
             Create Order
           </button>
+
         </div>
 
       </div>

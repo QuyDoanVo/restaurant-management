@@ -72,6 +72,33 @@ function Kitchen() {
     }
   };
 
+  const statusPriority = {
+    pending: 1,
+    preparing: 2,
+    ready: 3,
+    served: 4,
+    paid: 5
+  };
+
+  const sortedOrders = [...orders].sort((a, b) => {
+
+    if (
+      statusPriority[a.status] !==
+      statusPriority[b.status]
+    ) {
+
+      return (
+        statusPriority[a.status] -
+        statusPriority[b.status]
+      );
+    }
+
+    return (
+      new Date(b.createdAt) -
+      new Date(a.createdAt)
+    );
+  });
+
   return (
     <div style={{ padding: 20, background: "#f1f5f9", minHeight: "100vh" }}>
       <h1>🍳 Kitchen Dashboard</h1>
@@ -81,7 +108,7 @@ function Kitchen() {
         gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
         gap: 15
       }}>
-        {orders.map(order => (
+        {sortedOrders.map(order => (
           <div
             key={order._id}
             style={{
@@ -99,6 +126,10 @@ function Kitchen() {
               alignItems: "center"
             }}>
               <h3>Order #{order._id.slice(-5)}</h3>
+              <p>
+                {new Date(order.createdAt)
+                  .toLocaleString()}
+              </p>
 
               <span style={{
                 color: getStatusColor(order.status),
