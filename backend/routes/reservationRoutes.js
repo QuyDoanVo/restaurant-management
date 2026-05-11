@@ -4,9 +4,9 @@ const router = express.Router();
 const Reservation = require("../models/Reservation");
 const Table = require("../models/Table");
 
-// =======================
+
 // CREATE RESERVATION
-// =======================
+
 router.post("/", async (req, res) => {
   try {
 
@@ -210,9 +210,8 @@ router.post("/", async (req, res) => {
   }
 });
 
-// =======================
+
 // UPDATE RESERVATION STATUS
-// =======================
 router.put("/:id", async (req, res) => {
   try {
 
@@ -225,35 +224,77 @@ router.put("/:id", async (req, res) => {
       "cancelled"
     ];
 
-    if (
-      !validStatus.includes(status)
-    ) {
+    if (!validStatus.includes(status)) {
       return res.status(400).json({
         error: "Invalid status"
       });
     }
 
-    const updated =
-      await Reservation.findByIdAndUpdate(
+    // FIND CURRENT RESERVATION
+    const reservation =
+      await Reservation.findById(
+        req.params.id
+      );
 
-        req.params.id,
-
-        { status },
-
-        { new: true }
-
-      ).populate("tableIds");
-
-    if (!updated) {
+    if (!reservation) {
       return res.status(404).json({
-        error:
-          "Reservation not found"
+        error: "Reservation not found"
       });
     }
 
-    res.json(updated);
+    // CHECK CONFLICT
+    // WHEN CHANGE -> CONFIRMED
+
+    if (status === "confirmed") {
+
+      const conflict =
+        await Reservation.findOne({
+
+          _id: {
+            $ne: reservation._id
+          },
+
+          tableIds: {
+            $in: reservation.tableIds
+          },
+
+          status: "confirmed",
+
+          startTime: {
+            $lt: reservation.endTime
+          },
+
+          endTime: {
+            $gt: reservation.startTime
+          }
+
+        });
+
+      if (conflict) {
+
+        return res.status(400).json({
+          error:
+            "Cannot confirm because tables are already reserved at this time"
+        });
+
+      }
+    }
+
+    // UPDATE STATUS
+    reservation.status = status;
+
+    await reservation.save();
+
+    const populated =
+      await Reservation.findById(
+        reservation._id
+      ).populate("tableIds");
+
+    res.json(populated);
 
   } catch (err) {
+
+    console.error(err);
 
     res.status(500).json({
       error: err.message
@@ -262,9 +303,9 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// =======================
+
 // GET ALL RESERVATIONS
-// =======================
+
 router.get("/", async (req, res) => {
   try {
 
@@ -288,9 +329,9 @@ router.get("/", async (req, res) => {
   }
 });
 
-// =======================
+
 // DELETE RESERVATION
-// =======================
+
 router.delete("/:id", async (req, res) => {
   try {
 

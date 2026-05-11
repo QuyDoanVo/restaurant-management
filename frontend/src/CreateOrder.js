@@ -272,10 +272,19 @@ function CreateOrder() {
                 >
 
                   <h3 style={{
-                    margin: 0
+                    margin: 0,
+                    marginBottom: 8
                   }}>
                     Table {t.number}
                   </h3>
+
+                  <p style={{
+                    margin: "4px 0",
+                    fontSize: 14,
+                    color: "#555"
+                  }}>
+                    👥 Capacity: {t.capacity}
+                  </p>
 
                   <p style={{
                     marginTop: 8,
@@ -283,7 +292,8 @@ function CreateOrder() {
                       t.status === "occupied"
                         ? "red"
                         : "green",
-                    fontWeight: "bold"
+                    fontWeight: "bold",
+                    textTransform: "capitalize"
                   }}>
                     {t.status}
                   </p>
