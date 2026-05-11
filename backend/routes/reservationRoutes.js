@@ -9,97 +9,256 @@ const Table = require("../models/Table");
 // =======================
 router.post("/", async (req, res) => {
   try {
-    const { name, phone, people, startTime, endTime, tableId } = req.body;
 
-    if (!name || !phone || !people || !startTime || !endTime) {
-      return res.status(400).json({ error: "Missing data" });
+    const {
+      name,
+      phone,
+      people,
+      startTime,
+      endTime,
+      tableIds
+    } = req.body;
+
+    // REQUIRED DATA
+    if (
+      !name ||
+      !phone ||
+      !people ||
+      !startTime ||
+      !endTime
+    ) {
+      return res.status(400).json({
+        error: "Missing data"
+      });
     }
 
-    let chosenTable = null;
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const now = new Date();
 
-    // =======================
-    // Nếu user CHỌN bàn
-    // =======================
-    if (tableId) {
-      const conflict = await Reservation.findOne({
-        tableId,
-        status: "confirmed",
-        $or: [
-          {
-            startTime: { $lt: endTime },
-            endTime: { $gt: startTime }
-          }
-        ]
+    // CHECK TIME VALID
+    if (start >= end) {
+      return res.status(400).json({
+        error:
+          "Start time must be before end time"
+      });
+    }
+
+    // CHECK TABLE SELECTED
+    if (
+      !tableIds ||
+      tableIds.length === 0
+    ) {
+      return res.status(400).json({
+        error:
+          "Please select at least 1 table"
+      });
+    }
+
+    // FIND TABLES
+    const selectedTables =
+      await Table.find({
+        _id: { $in: tableIds }
       });
 
-      if (!conflict) {
-        chosenTable = await Table.findById(tableId);
-      } else {
+    if (
+      selectedTables.length !==
+      tableIds.length
+    ) {
+      return res.status(404).json({
+        error:
+          "Some tables not found"
+      });
+    }
+
+    // TOTAL CAPACITY
+    const totalCapacity =
+      selectedTables.reduce(
+        (sum, table) =>
+          sum + table.capacity,
+        0
+      );
+
+    if (totalCapacity < people) {
+      return res.status(400).json({
+        error:
+          "Selected tables do not have enough seats"
+      });
+    }
+
+    // CHECK < 2 HOURS
+    const diffMs = start - now;
+
+    const diffHours =
+      diffMs / (1000 * 60 * 60);
+
+    const needCheckOccupied =
+      diffHours < 2;
+
+    // CHECK OCCUPIED
+    if (needCheckOccupied) {
+
+      const occupiedTable =
+        selectedTables.find(
+          table =>
+            table.status ===
+            "occupied"
+        );
+
+      if (occupiedTable) {
         return res.status(400).json({
-          error: "Table already reserved at this time"
+          error:
+            "Table " + occupiedTable.number + " is currently occupied"
         });
       }
     }
 
-    // =======================
-    // Nếu chưa có → auto tìm
-    // =======================
-    if (!chosenTable) {
-      const tables = await Table.find({ capacity: { $gte: people } });
+    // CHECK CONFLICT
+    const conflict =
+      await Reservation.findOne({
 
-      for (let table of tables) {
-        const conflict = await Reservation.findOne({
-          tableId: table._id,
-          status: "confirmed",
-          $or: [
-            {
-              startTime: { $lt: endTime },
-              endTime: { $gt: startTime }
-            }
-          ]
-        });
+        tableIds: {
+          $in: tableIds
+        },
 
-        if (!conflict) {
-          chosenTable = table;
-          break;
+        status: "confirmed",
+
+        startTime: {
+          $lt: end
+        },
+
+        endTime: {
+          $gt: start
         }
-      }
-    }
+
+      });
 
     let reservation;
 
-    if (chosenTable) {
-      reservation = new Reservation({
-        name,
-        phone,
-        people,
-        startTime,
-        endTime,
-        tableId: chosenTable._id,
-        status: "confirmed"
-      });
+    // WAITING
+    if (conflict) {
 
-      console.log("✅ Reservation confirmed");
-    } else {
-      reservation = new Reservation({
-        name,
-        phone,
-        people,
-        startTime,
-        endTime,
-        status: "waiting"
-      });
+      reservation =
+        new Reservation({
 
-      console.log("⏳ Added to waiting list");
+          name,
+
+          phone,
+
+          people,
+
+          tableIds,
+
+          startTime: start,
+
+          endTime: end,
+
+          status: "waiting"
+
+        });
+
+      console.log(
+        "⏳ Added to waiting list"
+      );
     }
 
-    const saved = await reservation.save();
+    // CONFIRMED
+    else {
 
-    res.json(saved);
+      reservation =
+        new Reservation({
+
+          name,
+
+          phone,
+
+          people,
+
+          tableIds,
+
+          startTime: start,
+
+          endTime: end,
+
+          status: "confirmed"
+
+        });
+
+      console.log(
+        "✅ Reservation confirmed"
+      );
+    }
+
+    const saved =
+      await reservation.save();
+
+    const populated =
+      await Reservation.findById(
+        saved._id
+      ).populate("tableIds");
+
+    res.json(populated);
 
   } catch (err) {
+
     console.error(err);
-    res.status(500).json({ error: err.message });
+
+    res.status(500).json({
+      error: err.message
+    });
+
+  }
+});
+
+// =======================
+// UPDATE RESERVATION STATUS
+// =======================
+router.put("/:id", async (req, res) => {
+  try {
+
+    const { status } = req.body;
+
+    const validStatus = [
+      "confirmed",
+      "waiting",
+      "completed",
+      "cancelled"
+    ];
+
+    if (
+      !validStatus.includes(status)
+    ) {
+      return res.status(400).json({
+        error: "Invalid status"
+      });
+    }
+
+    const updated =
+      await Reservation.findByIdAndUpdate(
+
+        req.params.id,
+
+        { status },
+
+        { new: true }
+
+      ).populate("tableIds");
+
+    if (!updated) {
+      return res.status(404).json({
+        error:
+          "Reservation not found"
+      });
+    }
+
+    res.json(updated);
+
+  } catch (err) {
+
+    res.status(500).json({
+      error: err.message
+    });
+
   }
 });
 
@@ -108,10 +267,24 @@ router.post("/", async (req, res) => {
 // =======================
 router.get("/", async (req, res) => {
   try {
-    const list = await Reservation.find().populate("tableId");
-    res.json(list);
+
+    const reservations =
+      await Reservation.find()
+
+        .populate("tableIds")
+
+        .sort({
+          startTime: 1
+        });
+
+    res.json(reservations);
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+
+    res.status(500).json({
+      error: err.message
+    });
+
   }
 });
 
@@ -120,24 +293,32 @@ router.get("/", async (req, res) => {
 // =======================
 router.delete("/:id", async (req, res) => {
   try {
-    console.log("🗑 Deleting:", req.params.id);
 
-    const reservation = await Reservation.findById(req.params.id);
+    const reservation =
+      await Reservation.findById(
+        req.params.id
+      );
 
     if (!reservation) {
-      console.log("❌ Not found");
-      return res.status(404).json({ error: "Reservation not found" });
+      return res.status(404).json({
+        error:
+          "Reservation not found"
+      });
     }
 
     await reservation.deleteOne();
 
-    console.log("✅ Deleted");
-
-    res.json({ message: "Reservation deleted" });
+    res.json({
+      message:
+        "Reservation deleted"
+    });
 
   } catch (err) {
-    console.error("❌ DELETE ERROR:", err); // 👈 QUAN TRỌNG
-    res.status(500).json({ error: err.message });
+
+    res.status(500).json({
+      error: err.message
+    });
+
   }
 });
 

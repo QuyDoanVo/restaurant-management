@@ -32,6 +32,26 @@ function ReservationList() {
         background: "white"
     };
 
+    // ✅ STATUS COLOR
+    const getStatusColor = (status) => {
+        switch (status) {
+            case "confirmed":
+                return "#16a34a";
+
+            case "waiting":
+                return "#f59e0b";
+
+            case "cancelled":
+                return "#ef4444";
+
+            case "completed":
+                return "#2563eb";
+
+            default:
+                return "gray";
+        }
+    };
+
     const renderItem = (r) => (
         <div key={r._id} style={cardStyle}>
             <p style={{ margin: 0 }}>
@@ -47,12 +67,58 @@ function ReservationList() {
                 {new Date(r.endTime).toLocaleString()}
             </p>
 
+            {/* STATUS DROPDOWN */}
             <p style={{ margin: "6px 0" }}>
-                📌 Status: <b>{r.status}</b>
+                📌 Status:{" "}
+                <select
+                    value={r.status}
+                    onChange={async (e) => {
+                        await axios.put(
+                            `http://localhost:5000/reservations/${r._id}`,
+                            {
+                                status: e.target.value
+                            }
+                        );
+
+                        fetchData();
+                    }}
+                    style={{
+                        padding: "4px 8px",
+                        borderRadius: 6,
+                        marginLeft: 6,
+                        color: "white",
+                        border: "none",
+                        background: getStatusColor(r.status)
+                    }}
+                >
+                    <option value="confirmed">
+                        Confirmed
+                    </option>
+
+                    <option value="waiting">
+                        Waiting
+                    </option>
+
+                    <option value="completed">
+                        Completed
+                    </option>
+
+                    <option value="cancelled">
+                        Cancelled
+                    </option>
+                </select>
             </p>
 
+            {/* MULTIPLE TABLES */}
             <p style={{ margin: "6px 0" }}>
-                🪑 Table: {r.tableId ? `Table ${r.tableId.number}` : "None"}
+                🪑 Tables:{" "}
+                {
+                    r.tableIds?.length > 0
+                        ? r.tableIds
+                              .map((t) => `Table ${t.number}`)
+                              .join(", ")
+                        : "None"
+                }
             </p>
 
             <button
@@ -73,27 +139,18 @@ function ReservationList() {
     );
 
     return (
-        <div style={{ padding: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-            
-            {/* ✅ CONFIRMED */}
-            <div>
-                <h2>Reservation List</h2>
-                <div style={{ background: "white", padding: 12, borderRadius: 12 }}>
-                    {list
-                        .filter(r => r.status === "confirmed")
-                        .map(renderItem)}
-                </div>
-            </div>
+        <div style={{ padding: 20 }}>
+            <h2>Reservation List</h2>
 
-            {/* ⏳ WAITING */}
-            <div>
-                <div >
-                    {list
-                        .filter(r => r.status === "waiting")
-                        .map(renderItem)}
-                </div>
+            <div
+                style={{
+                    background: "white",
+                    padding: 12,
+                    borderRadius: 12
+                }}
+            >
+                {list.map(renderItem)}
             </div>
-
         </div>
     );
 }

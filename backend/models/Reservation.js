@@ -8,11 +8,12 @@ const reservationSchema = new mongoose.Schema({
   startTime: Date,
   endTime: Date,
 
-  tableId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Table",
-    default: null
-  },
+  tableIds: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Table"
+    }
+  ],
 
   status: {
     type: String,

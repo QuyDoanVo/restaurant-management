@@ -7,7 +7,8 @@ function Reservation() {
         phone: "",
         people: "",
         startTime: "",
-        endTime: ""
+        endTime: "",
+        tableIds: []
     });
 
     const handleSubmit = async () => {
@@ -82,18 +83,104 @@ function Reservation() {
 
             {/* TABLE */}
             <div style={{ marginBottom: 15 }}>
-                <label>Select Table (optional)</label>
-                <select
-                    style={inputStyle}
-                    onChange={e => setForm({ ...form, tableId: e.target.value })}
+
+                <label>Select Tables</label>
+
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                            "repeat(auto-fill,minmax(120px,1fr))",
+                        gap: 10,
+                        marginTop: 10
+                    }}
                 >
-                    <option value="">Auto assign</option>
-                    {tables.map(t => (
-                        <option key={t._id} value={t._id}>
-                            Table {t.number} ({t.status})
-                        </option>
-                    ))}
-                </select>
+
+                    {tables.map(t => {
+
+                        const selected =
+                            form.tableIds?.includes(t._id);
+
+                        const disabled =
+                            t.status === "occupied";
+
+                        return (
+
+                            <div
+                                key={t._id}
+
+                                onClick={() => {
+
+                                    if (disabled) return;
+
+                                    let updated =
+                                        form.tableIds || [];
+
+                                    if (selected) {
+
+                                        updated =
+                                            updated.filter(
+                                                id => id !== t._id
+                                            );
+
+                                    } else {
+
+                                        updated = [
+                                            ...updated,
+                                            t._id
+                                        ];
+                                    }
+
+                                    setForm({
+                                        ...form,
+                                        tableIds: updated
+                                    });
+                                }}
+
+                                style={{
+
+                                    padding: 15,
+
+                                    borderRadius: 10,
+
+                                    cursor:
+                                        disabled
+                                            ? "not-allowed"
+                                            : "pointer",
+
+                                    textAlign: "center",
+
+                                    transition: "0.2s",
+
+                                    border:
+                                        selected
+                                            ? "3px solid #2563eb"
+                                            : "2px solid #ddd",
+
+                                    background:
+                                        disabled
+                                            ? "#ffe5e5"
+                                            : selected
+                                                ? "#dbeafe"
+                                                : "#ecfdf5",
+
+                                    opacity:
+                                        disabled ? 0.6 : 1
+                                }}
+                            >
+
+                                <h3>
+                                    Table {t.number}
+                                </h3>
+
+                                <p>
+                                    {t.status}
+                                </p>
+
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
 
             {/* TIME */}
